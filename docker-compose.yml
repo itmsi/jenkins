@@ -1,0 +1,26 @@
+# Docker Compose untuk Jenkins
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    restart: unless-stopped
+    ports:
+      - "9533:8080"    # Jenkins UI
+      - "9534:50000"   # Jenkins Agent
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Untuk Docker-in-Docker
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=true
+      - JENKINS_OPTS=--httpPort=8080
+    networks:
+      - jenkins-network
+
+volumes:
+  jenkins_home:
+    driver: local
+
+networks:
+  jenkins-network:
+    driver: bridge

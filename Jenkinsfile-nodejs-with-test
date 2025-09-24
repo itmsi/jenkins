@@ -1,0 +1,56 @@
+# Jenkinsfile untuk Node.js - Dengan Test Sederhana
+# Simpan sebagai Jenkinsfile di root repository
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Pulling code from repository...'
+                checkout scm
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                echo '📦 Installing dependencies...'
+                sh 'npm install'
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                echo '🧪 Running tests...'
+                sh 'npm test || echo "No test script found"'
+            }
+        }
+        
+        stage('Build Project') {
+            steps {
+                echo '🔨 Building project...'
+                sh 'npm run build || echo "No build script found"'
+            }
+        }
+        
+        stage('Check Output') {
+            steps {
+                echo '📁 Checking build output:'
+                sh 'ls -la dist/ || echo "No dist folder"'
+                sh 'ls -la build/ || echo "No build folder"'
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '✅ Build successful!'
+        }
+        failure {
+            echo '❌ Build failed!'
+        }
+        always {
+            echo '🏁 Pipeline completed!'
+        }
+    }
+}

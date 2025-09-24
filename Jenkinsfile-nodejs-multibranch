@@ -1,0 +1,65 @@
+# Jenkinsfile untuk Node.js - Multibranch (Otomatis Detect Branch)
+# Simpan sebagai Jenkinsfile di root repository
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Pulling code from repository...'
+                checkout scm
+                echo 'Branch: ' + env.BRANCH_NAME
+            }
+        }
+        
+        stage('Environment Info') {
+            steps {
+                echo '🌍 Environment Information:'
+                echo 'Node.js Version:'
+                sh 'node --version'
+                echo 'npm Version:'
+                sh 'npm --version'
+                echo 'Current Directory:'
+                sh 'pwd'
+                echo 'Repository Contents:'
+                sh 'ls -la'
+            }
+        }
+        
+        stage('Package Info') {
+            steps {
+                echo '📦 Package Information:'
+                sh 'cat package.json 2>/dev/null || echo "No package.json found"'
+            }
+        }
+        
+        stage('Install Dependencies') {
+            when {
+                expression { fileExists('package.json') }
+            }
+            steps {
+                echo '📦 Installing dependencies...'
+                sh 'npm install'
+            }
+        }
+        
+        stage('Run Scripts') {
+            when {
+                expression { fileExists('package.json') }
+            }
+            steps {
+                echo '🚀 Running available scripts:'
+                sh 'npm run test || echo "No test script"'
+                sh 'npm run build || echo "No build script"'
+                sh 'npm run start || echo "No start script"'
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo '✅ Pipeline completed for branch: ' + env.BRANCH_NAME
+        }
+    }
+}

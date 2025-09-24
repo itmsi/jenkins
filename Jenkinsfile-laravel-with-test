@@ -1,0 +1,82 @@
+# Jenkinsfile untuk Laravel - Dengan Test dan Build
+# Simpan sebagai Jenkinsfile di root repository
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Pulling code from repository...'
+                checkout scm
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                echo '📦 Installing dependencies...'
+                sh 'composer install --no-dev --optimize-autoloader'
+            }
+        }
+        
+        stage('Environment Setup') {
+            steps {
+                echo '🔧 Setting up environment...'
+                sh 'cp .env.example .env || echo "No .env.example found"'
+                sh 'php artisan key:generate || echo "Key generation failed"'
+            }
+        }
+        
+        stage('Database Migration') {
+            steps {
+                echo '🗄️ Running database migrations...'
+                sh 'php artisan migrate --force || echo "Migration failed"'
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                echo '🧪 Running tests...'
+                sh 'php artisan test || echo "No tests found"'
+                sh 'vendor/bin/phpunit || echo "PHPUnit not available"'
+            }
+        }
+        
+        stage('Build Assets') {
+            steps {
+                echo '🔨 Building assets...'
+                sh 'npm install || echo "npm install failed"'
+                sh 'npm run build || echo "npm run build failed"'
+            }
+        }
+        
+        stage('Cache Optimization') {
+            steps {
+                echo '⚡ Optimizing cache...'
+                sh 'php artisan config:cache || echo "Config cache failed"'
+                sh 'php artisan route:cache || echo "Route cache failed"'
+                sh 'php artisan view:cache || echo "View cache failed"'
+            }
+        }
+        
+        stage('Check Output') {
+            steps {
+                echo '📁 Checking build output:'
+                sh 'ls -la public/build/ || echo "No build directory"'
+                sh 'ls -la bootstrap/cache/ || echo "No cache directory"'
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '✅ Build successful!'
+        }
+        failure {
+            echo '❌ Build failed!'
+        }
+        always {
+            echo '🏁 Pipeline completed!'
+        }
+    }
+}

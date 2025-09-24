@@ -1,0 +1,81 @@
+# Jenkinsfile untuk Laravel - Multibranch (Otomatis Detect Branch)
+# Simpan sebagai Jenkinsfile di root repository
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Pulling code from repository...'
+                checkout scm
+                echo 'Branch: ' + env.BRANCH_NAME
+            }
+        }
+        
+        stage('Environment Info') {
+            steps {
+                echo '🌍 Environment Information:'
+                echo 'PHP Version:'
+                sh 'php --version'
+                echo 'Composer Version:'
+                sh 'composer --version'
+                echo 'Laravel Version:'
+                sh 'php artisan --version || echo "Laravel not detected"'
+                echo 'Current Directory:'
+                sh 'pwd'
+                echo 'Repository Contents:'
+                sh 'ls -la'
+            }
+        }
+        
+        stage('Laravel Structure Check') {
+            steps {
+                echo '🏗️ Laravel Structure:'
+                sh 'ls -la app/ || echo "No app directory"'
+                sh 'ls -la config/ || echo "No config directory"'
+                sh 'ls -la routes/ || echo "No routes directory"'
+                sh 'ls -la composer.json || echo "No composer.json"'
+            }
+        }
+        
+        stage('Install Dependencies') {
+            when {
+                expression { fileExists('composer.json') }
+            }
+            steps {
+                echo '📦 Installing dependencies...'
+                sh 'composer install --no-dev --optimize-autoloader'
+            }
+        }
+        
+        stage('Laravel Commands') {
+            when {
+                expression { fileExists('composer.json') }
+            }
+            steps {
+                echo '🚀 Running Laravel commands:'
+                sh 'php artisan --version || echo "Laravel not detected"'
+                sh 'php artisan route:list || echo "Route list failed"'
+                sh 'php artisan config:show || echo "Config show failed"'
+            }
+        }
+        
+        stage('Frontend Assets') {
+            when {
+                expression { fileExists('package.json') }
+            }
+            steps {
+                echo '🎨 Frontend Assets:'
+                sh 'npm install || echo "npm install failed"'
+                sh 'npm run dev || echo "npm run dev failed"'
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo '✅ Pipeline completed for branch: ' + env.BRANCH_NAME
+        }
+    }
+}

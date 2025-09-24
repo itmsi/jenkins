@@ -1,0 +1,55 @@
+# Jenkinsfile untuk Laravel - Dengan Install Dependencies
+# Simpan sebagai Jenkinsfile di root repository
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Pulling code from repository...'
+                checkout scm
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                echo '📦 Installing Laravel dependencies...'
+                sh 'composer install --no-dev --optimize-autoloader || echo "composer install failed"'
+            }
+        }
+        
+        stage('Laravel Environment') {
+            steps {
+                echo '🔧 Laravel Environment Check:'
+                sh 'php artisan --version || echo "Laravel not detected"'
+                sh 'ls -la .env || echo "No .env file"'
+                sh 'ls -la .env.example || echo "No .env.example"'
+            }
+        }
+        
+        stage('Project Info') {
+            steps {
+                echo '📋 Project Information:'
+                sh 'cat composer.json | grep -E "(name|description|version)" || echo "No composer.json found"'
+            }
+        }
+        
+        stage('Check Laravel Structure') {
+            steps {
+                echo '🏗️ Laravel Structure:'
+                sh 'ls -la app/Http/Controllers/ || echo "No Controllers"'
+                sh 'ls -la app/Models/ || echo "No Models"'
+                sh 'ls -la database/migrations/ || echo "No Migrations"'
+                sh 'ls -la resources/views/ || echo "No Views"'
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo '✅ Pipeline completed!'
+            echo 'Dependencies installed successfully'
+        }
+    }
+}

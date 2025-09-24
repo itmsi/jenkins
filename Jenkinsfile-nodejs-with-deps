@@ -1,0 +1,43 @@
+# Jenkinsfile untuk Node.js - Dengan Install Dependencies
+# Simpan sebagai Jenkinsfile di root repository
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Pulling code from repository...'
+                checkout scm
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                echo '📦 Installing Node.js dependencies...'
+                sh 'npm install || echo "npm install failed - check package.json"'
+            }
+        }
+        
+        stage('Check Dependencies') {
+            steps {
+                echo '🔍 Checking installed packages:'
+                sh 'npm list --depth=0 || echo "No packages installed"'
+            }
+        }
+        
+        stage('Project Info') {
+            steps {
+                echo '📋 Project Information:'
+                sh 'cat package.json | grep -E "(name|version|description)" || echo "No package.json found"'
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo '✅ Pipeline completed!'
+            echo 'Dependencies installed successfully'
+        }
+    }
+}

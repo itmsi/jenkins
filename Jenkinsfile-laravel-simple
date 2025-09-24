@@ -1,0 +1,58 @@
+# Jenkinsfile untuk Laravel - Sederhana (Hanya Pull Code)
+# Simpan sebagai Jenkinsfile di root repository
+
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📥 Pulling code from repository...'
+                checkout scm
+            }
+        }
+        
+        stage('Info') {
+            steps {
+                echo '📋 Project Information:'
+                echo 'Repository: ' + env.JOB_NAME
+                echo 'Branch: ' + env.BRANCH_NAME
+                echo 'Build Number: ' + env.BUILD_NUMBER
+                echo 'Workspace: ' + env.WORKSPACE
+            }
+        }
+        
+        stage('List Files') {
+            steps {
+                echo '📁 Repository contents:'
+                sh 'ls -la'
+            }
+        }
+        
+        stage('Laravel Info') {
+            steps {
+                echo '🔴 Laravel Information:'
+                sh 'php --version || echo "PHP not installed"'
+                sh 'composer --version || echo "Composer not installed"'
+                sh 'php artisan --version || echo "Laravel not detected"'
+            }
+        }
+        
+        stage('Check Laravel Files') {
+            steps {
+                echo '🔍 Checking Laravel files:'
+                sh 'ls -la app/ || echo "No app directory"'
+                sh 'ls -la config/ || echo "No config directory"'
+                sh 'ls -la routes/ || echo "No routes directory"'
+                sh 'ls -la composer.json || echo "No composer.json"'
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo '✅ Pipeline completed!'
+            echo 'Build finished at: ' + new Date().toString()
+        }
+    }
+}
